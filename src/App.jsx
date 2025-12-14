@@ -10,6 +10,8 @@ function App() {
   const [error, setError] = useState(null);
   const [foundCharacters, setFoundCharacters] = useState([]);
   const [feedback, setFeedback] = useState(null);
+  const [gameComplete, setGameComplete] = useState(false);
+  const [characterMarkers, setCharacterMarkers] = useState([]);
 
   useEffect(() => {
     // Fetch game image and character data
@@ -27,6 +29,13 @@ function App() {
         setLoading(false);
       });
   }, []);
+
+  // Check if game is complete when all characters are found
+  useEffect(() => {
+    if (gameData && foundCharacters.length === gameData.characters.length && foundCharacters.length > 0) {
+      setGameComplete(true);
+    }
+  }, [foundCharacters, gameData]);
 
   const handleCharacterSelect = async ({ characterId, x, y }) => {
     // Don't validate if character is already found
@@ -56,9 +65,21 @@ function App() {
         valid: result.valid,
       });
 
-      // If valid, mark character as found
+      // If valid, mark character as found and add visual marker
       if (result.valid) {
         setFoundCharacters([...foundCharacters, characterId]);
+
+        // Add marker at the click location
+        const character = gameData.characters.find(c => c.id === characterId);
+        setCharacterMarkers([
+          ...characterMarkers,
+          {
+            id: characterId,
+            name: character.name,
+            x,
+            y,
+          },
+        ]);
       }
 
       // Clear feedback after 2 seconds
@@ -70,6 +91,13 @@ function App() {
       });
       setTimeout(() => setFeedback(null), 2000);
     }
+  };
+
+  const handleNewGame = () => {
+    setFoundCharacters([]);
+    setCharacterMarkers([]);
+    setGameComplete(false);
+    setFeedback(null);
   };
 
   if (loading) {
@@ -94,7 +122,29 @@ function App() {
   return (
     <main className="container">
       <h1>Where's Waldo</h1>
-      <p>Find all the characters by clicking on them!</p>
+
+      {/* Game completion screen */}
+      {gameComplete ? (
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '2rem',
+            backgroundColor: 'var(--pico-ins-color, #d4edda)',
+            borderRadius: 'var(--pico-border-radius, 0.5rem)',
+            marginBottom: '1rem',
+          }}
+        >
+          <h2 style={{ color: '#155724', marginBottom: '1rem' }}>🎉 Congratulations! 🎉</h2>
+          <p style={{ fontSize: '1.2rem', marginBottom: '1.5rem' }}>
+            You found all {gameData.characters.length} characters!
+          </p>
+          <button onClick={handleNewGame} style={{ fontSize: '1.1rem', padding: '0.75rem 1.5rem' }}>
+            Play Again
+          </button>
+        </div>
+      ) : (
+        <p>Find all the characters by clicking on them!</p>
+      )}
 
       {/* Feedback message */}
       {feedback && (
@@ -115,23 +165,27 @@ function App() {
         </div>
       )}
 
+      {/* Game progress tracker */}
       <div style={{ marginBottom: '1rem' }}>
-        <strong>Characters to find:</strong>{' '}
-        {gameData?.characters.map((char) => {
-          const isFound = foundCharacters.includes(char.id);
-          return (
-            <span
-              key={char.id}
-              style={{
-                marginRight: '0.5rem',
-                textDecoration: isFound ? 'line-through' : 'none',
-                opacity: isFound ? 0.6 : 1,
-              }}
-            >
-              {char.name} {isFound && '✓'}
-            </span>
-          );
-        })}
+        <strong>Progress: {foundCharacters.length} / {gameData?.characters.length}</strong>
+        <div style={{ marginTop: '0.5rem' }}>
+          <strong>Characters to find:</strong>{' '}
+          {gameData?.characters.map((char) => {
+            const isFound = foundCharacters.includes(char.id);
+            return (
+              <span
+                key={char.id}
+                style={{
+                  marginRight: '0.5rem',
+                  textDecoration: isFound ? 'line-through' : 'none',
+                  opacity: isFound ? 0.6 : 1,
+                }}
+              >
+                {char.name} {isFound && '✓'}
+              </span>
+            );
+          })}
+        </div>
       </div>
 
       <GameBoard
@@ -140,6 +194,7 @@ function App() {
         imageHeight={gameData.height}
         characters={gameData.characters}
         foundCharacters={foundCharacters}
+        characterMarkers={characterMarkers}
         onCharacterSelect={handleCharacterSelect}
       />
     </main>

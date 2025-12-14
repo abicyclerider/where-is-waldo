@@ -11,9 +11,10 @@ import TargetingBox from './TargetingBox';
  * @param {number} props.imageHeight - Original image height
  * @param {Array} props.characters - List of characters in the game
  * @param {Array} props.foundCharacters - List of character IDs already found
+ * @param {Array} props.characterMarkers - Visual markers for found characters
  * @param {Function} props.onCharacterSelect - Callback when character is selected
  */
-function GameBoard({ imageUrl, imageWidth, imageHeight, characters, foundCharacters, onCharacterSelect }) {
+function GameBoard({ imageUrl, imageWidth, imageHeight, characters, foundCharacters, characterMarkers = [], onCharacterSelect }) {
   const [targetingBox, setTargetingBox] = useState(null);
   const imageRef = useRef(null);
 
@@ -80,6 +81,40 @@ function GameBoard({ imageUrl, imageWidth, imageHeight, characters, foundCharact
         data-testid="game-image"
       />
 
+      {/* Visual markers for found characters */}
+      {characterMarkers.map((marker) => {
+        if (!imageRef.current) return null;
+        const rect = imageRef.current.getBoundingClientRect();
+
+        // Convert normalized coordinates back to pixel positions
+        const pixelX = marker.x * rect.width;
+        const pixelY = marker.y * rect.height;
+
+        return (
+          <div
+            key={marker.id}
+            style={{
+              position: 'absolute',
+              left: pixelX - 20,
+              top: pixelY - 20,
+              width: 40,
+              height: 40,
+              border: '3px solid #28a745',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(40, 167, 69, 0.2)',
+              pointerEvents: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.5rem',
+            }}
+            data-testid={`marker-${marker.id}`}
+          >
+            ✓
+          </div>
+        );
+      })}
+
       {targetingBox && (
         <TargetingBox
           x={targetingBox.x}
@@ -105,6 +140,14 @@ GameBoard.propTypes = {
     })
   ).isRequired,
   foundCharacters: PropTypes.arrayOf(PropTypes.number).isRequired,
+  characterMarkers: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      name: PropTypes.string.isRequired,
+      x: PropTypes.number.isRequired,
+      y: PropTypes.number.isRequired,
+    })
+  ),
   onCharacterSelect: PropTypes.func.isRequired,
 };
 
