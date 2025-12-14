@@ -2,7 +2,14 @@ import { useState, useEffect } from 'react';
 import GameBoard from './components/GameBoard';
 import './App.css';
 
-const API_URL = 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+// Helper function to format time in seconds to MM:SS.ss
+const formatTime = (seconds) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toFixed(2).padStart(5, '0')}`;
+};
 
 function App() {
   const [gameData, setGameData] = useState(null);
@@ -12,6 +19,9 @@ function App() {
   const [feedback, setFeedback] = useState(null);
   const [gameComplete, setGameComplete] = useState(false);
   const [characterMarkers, setCharacterMarkers] = useState([]);
+  const [startTime, setStartTime] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [finalTime, setFinalTime] = useState(null);
 
   useEffect(() => {
     // Fetch game image and character data
@@ -34,10 +44,34 @@ function App() {
   useEffect(() => {
     if (gameData && foundCharacters.length === gameData.characters.length && foundCharacters.length > 0) {
       setGameComplete(true);
+      // Stop timer and record final time
+      if (startTime) {
+        const endTime = Date.now();
+        const timeInSeconds = (endTime - startTime) / 1000;
+        setFinalTime(timeInSeconds);
+      }
     }
-  }, [foundCharacters, gameData]);
+  }, [foundCharacters, gameData, startTime]);
+
+  // Timer effect - updates elapsed time every 100ms while game is active
+  useEffect(() => {
+    if (!startTime || gameComplete) return;
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const elapsed = (now - startTime) / 1000;
+      setElapsedTime(elapsed);
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [startTime, gameComplete]);
 
   const handleCharacterSelect = async ({ characterId, x, y }) => {
+    // Start timer on first click
+    if (!startTime) {
+      setStartTime(Date.now());
+    }
+
     // Don't validate if character is already found
     if (foundCharacters.includes(characterId)) {
       return;
@@ -98,6 +132,9 @@ function App() {
     setCharacterMarkers([]);
     setGameComplete(false);
     setFeedback(null);
+    setStartTime(null);
+    setElapsedTime(0);
+    setFinalTime(null);
   };
 
   if (loading) {
