@@ -9,9 +9,11 @@ import TargetingBox from './TargetingBox';
  * @param {string} props.imageUrl - URL of the game image
  * @param {number} props.imageWidth - Original image width
  * @param {number} props.imageHeight - Original image height
+ * @param {Array} props.characters - List of characters in the game
+ * @param {Array} props.foundCharacters - List of character IDs already found
  * @param {Function} props.onCharacterSelect - Callback when character is selected
  */
-function GameBoard({ imageUrl, imageWidth, imageHeight, onCharacterSelect }) {
+function GameBoard({ imageUrl, imageWidth, imageHeight, characters, foundCharacters, onCharacterSelect }) {
   const [targetingBox, setTargetingBox] = useState(null);
   const imageRef = useRef(null);
 
@@ -82,6 +84,8 @@ function GameBoard({ imageUrl, imageWidth, imageHeight, onCharacterSelect }) {
         <TargetingBox
           x={targetingBox.x}
           y={targetingBox.y}
+          characters={characters}
+          foundCharacters={foundCharacters}
           onClose={handleTargetingBoxClose}
           onCharacterSelect={handleCharacterSelect}
         />
@@ -94,6 +98,13 @@ GameBoard.propTypes = {
   imageUrl: PropTypes.string.isRequired,
   imageWidth: PropTypes.number.isRequired,
   imageHeight: PropTypes.number.isRequired,
+  characters: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      name: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  foundCharacters: PropTypes.arrayOf(PropTypes.number).isRequired,
   onCharacterSelect: PropTypes.func.isRequired,
 };
 

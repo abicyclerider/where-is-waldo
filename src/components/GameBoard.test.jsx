@@ -4,10 +4,18 @@ import userEvent from '@testing-library/user-event';
 import GameBoard from './GameBoard';
 
 describe('GameBoard component', () => {
+  const mockCharacters = [
+    { id: 1, name: 'Waldo' },
+    { id: 2, name: 'Wizard' },
+    { id: 3, name: 'Odlaw' },
+  ];
+
   const mockProps = {
     imageUrl: 'https://example.com/test-image.jpg',
     imageWidth: 1920,
     imageHeight: 1280,
+    characters: mockCharacters,
+    foundCharacters: [],
     onCharacterSelect: vi.fn(),
   };
 

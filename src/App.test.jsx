@@ -49,7 +49,8 @@ describe('App component', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /where's waldo/i })).toBeInTheDocument();
       expect(screen.getByText(/find all the characters/i)).toBeInTheDocument();
-      expect(screen.getByText(/waldo, wizard/i)).toBeInTheDocument();
+      expect(screen.getByText('Waldo')).toBeInTheDocument();
+      expect(screen.getByText('Wizard')).toBeInTheDocument();
     });
   });
 });

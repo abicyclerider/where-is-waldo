@@ -7,10 +7,12 @@ import PropTypes from 'prop-types';
  * @param {Object} props
  * @param {number} props.x - X coordinate relative to image (pixels)
  * @param {number} props.y - Y coordinate relative to image (pixels)
+ * @param {Array} props.characters - List of characters to display
+ * @param {Array} props.foundCharacters - List of character IDs already found
  * @param {Function} props.onClose - Callback to close the targeting box
  * @param {Function} props.onCharacterSelect - Callback when a character is selected
  */
-function TargetingBox({ x, y, onClose, onCharacterSelect }) {
+function TargetingBox({ x, y, characters = [], foundCharacters = [], onClose, onCharacterSelect }) {
   const boxRef = useRef(null);
 
   // Close targeting box when clicking outside
@@ -95,44 +97,29 @@ function TargetingBox({ x, y, onClose, onCharacterSelect }) {
         <div style={{ fontSize: '0.875rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
           Who is this?
         </div>
-        {/* Character buttons will be populated by parent component */}
         <div className="character-options" data-testid="character-options">
-          {/* Placeholder - will be enhanced in Phase 5 */}
-          <button
-            onClick={() => onCharacterSelect(1)}
-            style={{
-              display: 'block',
-              width: '100%',
-              marginBottom: '0.25rem',
-              padding: '0.5rem',
-              fontSize: '0.875rem',
-            }}
-          >
-            Waldo
-          </button>
-          <button
-            onClick={() => onCharacterSelect(2)}
-            style={{
-              display: 'block',
-              width: '100%',
-              marginBottom: '0.25rem',
-              padding: '0.5rem',
-              fontSize: '0.875rem',
-            }}
-          >
-            Wizard
-          </button>
-          <button
-            onClick={() => onCharacterSelect(3)}
-            style={{
-              display: 'block',
-              width: '100%',
-              padding: '0.5rem',
-              fontSize: '0.875rem',
-            }}
-          >
-            Odlaw
-          </button>
+          {characters.map((character, index) => {
+            const isFound = foundCharacters.includes(character.id);
+            return (
+              <button
+                key={character.id}
+                onClick={() => onCharacterSelect(character.id)}
+                disabled={isFound}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  marginBottom: index < characters.length - 1 ? '0.25rem' : '0',
+                  padding: '0.5rem',
+                  fontSize: '0.875rem',
+                  opacity: isFound ? 0.5 : 1,
+                  textDecoration: isFound ? 'line-through' : 'none',
+                  cursor: isFound ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {character.name} {isFound && '✓'}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -142,6 +129,13 @@ function TargetingBox({ x, y, onClose, onCharacterSelect }) {
 TargetingBox.propTypes = {
   x: PropTypes.number.isRequired,
   y: PropTypes.number.isRequired,
+  characters: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      name: PropTypes.string.isRequired,
+    })
+  ),
+  foundCharacters: PropTypes.arrayOf(PropTypes.number),
   onClose: PropTypes.func.isRequired,
   onCharacterSelect: PropTypes.func.isRequired,
 };
