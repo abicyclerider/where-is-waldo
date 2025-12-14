@@ -1,9 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from typing import List
 import uuid
 from datetime import datetime, timezone
+import os
 
 import models
 import schemas
@@ -14,10 +16,18 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Where's Waldo API")
 
+# Mount static files directory for serving images
+static_dir = os.path.dirname(os.path.abspath(__file__))
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
 # Configure CORS for local development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],  # Vite default port
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",  # Vite alternate port
+        "http://localhost:3000"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
