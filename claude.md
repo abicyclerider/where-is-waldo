@@ -4,7 +4,7 @@
 This is a Where's Waldo photo tagging game following The Odin Project specifications.
 Location: `/Users/alex/repos/where-is-waldo`
 
-## Project Status: Phase 6 Complete ✅
+## Project Status: Phase 7 Complete ✅
 
 ### Completed Phases
 
@@ -14,14 +14,14 @@ Location: `/Users/alex/repos/where-is-waldo`
 - ✅ **Phase 4**: Image Click Detection & Coordinate Normalization
 - ✅ **Phase 5**: Backend Integration & Validation
 - ✅ **Phase 6**: Game State Management
+- ✅ **Phase 7**: Timer & Scoring System
 
 ### Current Phase
 
-- 🔄 **Phase 7**: Timer & Scoring System (Next)
+- 🔄 **Phase 8**: Polish & UX Improvements (Next)
 
 ### Remaining Phases
 
-- Phase 8: Polish & UX Improvements
 - Phase 9: Testing & Quality Assurance
 - Phase 10: Deployment
 
@@ -213,19 +213,157 @@ This setup allows Claude to access and reference The Odin Project's React curric
 - Visual markers have `pointerEvents: 'none'` to avoid interfering with clicks
 - Game completion check includes `foundCharacters.length > 0` to avoid false positive on initial load
 
-### Next Steps for Phase 7
+## Phase 7 Summary: Timer & Scoring System
 
-**Timer & Scoring System:**
+### What Was Built
 
-1. Start timer when game begins
-2. Stop timer when all characters are found
-3. Display elapsed time during gameplay
-4. Save high scores to backend
-5. Display leaderboard
-6. Allow player to submit name with score
+**Core Timer Features:**
+
+- Game timer that starts on first character click
+- Real-time elapsed time display (updates every 100ms)
+- Automatic timer stop when game completes
+- Final time recording and display
+
+**High Score System:**
+
+- High score submission form with player name input
+- Integration with backend `/high-scores` API
+- Leaderboard display with top scores
+- Score submission with skip option
+
+**New Components Created:**
+
+1. **HighScoreForm** - Form component for score submission
+   - Player name input field (max 50 characters)
+   - Time display in MM:SS.ss format
+   - Submit and Skip buttons
+   - Loading state during submission
+
+2. **Leaderboard** - Displays top scores
+   - Fetches scores from backend API
+   - Shows rank, player name, time, and date
+   - Medal emojis for top 3 (🥇🥈🥉)
+   - Responsive table layout
+   - Auto-refreshes after score submission
+
+### Technical Implementation
+
+**Timer State Management:**
+
+- `startTime`: Timestamp when timer starts (Date.now())
+- `elapsedTime`: Current elapsed time in seconds
+- `finalTime`: Final completion time in seconds
+- Timer updates every 100ms using setInterval
+- Cleanup on component unmount
+
+**Time Formatting:**
+
+- Helper function `formatTime(seconds)` converts to MM:SS.ss
+- Used consistently across all time displays
+- Minutes, seconds, and centiseconds displayed
+
+**Score Submission Flow:**
+
+1. Game completes → `showHighScoreForm` set to true
+2. User enters name → form submits to `/high-scores` POST
+3. Backend saves score → returns success
+4. Leaderboard refreshes → shows updated scores
+5. Form closes → shows completion message
+
+**API Integration:**
+
+- `POST /high-scores` - Submit new score
+  - Payload: `{ player_name, time, image_id }`
+- `GET /high-scores` - Fetch leaderboard
+  - Returns array of scores sorted by time (fastest first)
+
+### UI Updates
+
+**During Gameplay:**
+
+- Progress bar shows: "Progress: X / Y"
+- Timer shows in top-right: "Time: MM:SS.ss"
+- Timer only visible after first click
+
+**On Completion:**
+
+- High score form appears first (if finalTime exists)
+- Player can submit name or skip
+- After submission/skip, shows congratulations message
+- "Play Again" button resets all game state
+
+**Leaderboard:**
+
+- Always visible at bottom of page
+- Shows "No high scores yet" if empty
+- Table with rank, player, time, date columns
+- Medal emojis for positions 1-3
+- Monospace font for time display
+- Date shown in local format
+
+### Component Integration
+
+**App.jsx Changes:**
+
+- Added timer state and effects
+- Added high score submission handlers
+- Conditional rendering for high score form
+- Integrated Leaderboard component
+- Added `leaderboardRefresh` trigger
+
+**State Flow:**
+
+```
+Game Start → First Click → Start Timer
+↓
+Find Characters → Timer Running
+↓
+All Found → Stop Timer → Record Final Time
+↓
+Show High Score Form → Submit/Skip
+↓
+Show Completion Screen + Leaderboard
+```
+
+### User Experience Flow
+
+1. Player loads game, sees leaderboard at bottom
+2. Player clicks on image, timer starts automatically
+3. Timer counts up in real-time in top-right corner
+4. Player finds all characters
+5. Timer stops, final time recorded
+6. High score form appears
+7. Player enters name and submits (or skips)
+8. Leaderboard refreshes with new score
+9. Congratulations message shows with final time
+10. Player clicks "Play Again" to restart
+
+### Technical Notes
+
+- Timer precision: 100ms (updates 10 times per second)
+- Time format: MM:SS.ss (minutes:seconds.centiseconds)
+- Score validation: Backend checks for valid image_id
+- Leaderboard sorting: Backend handles (ORDER BY time ASC)
+- Auto-refresh: Leaderboard re-fetches after score submission
+- Error handling: Alert shown if score submission fails
+- State cleanup: All timer state reset on "New Game"
+
+### Next Steps for Phase 8
+
+**Polish & UX Improvements:**
+
+1. Add loading states and animations
+2. Improve responsive design for mobile
+3. Add sound effects and visual polish
+4. Implement keyboard shortcuts
+5. Add game instructions/tutorial
+6. Improve error handling and user feedback
+7. Add accessibility features (ARIA labels, keyboard navigation)
+8. Optimize performance
 
 **Notes:**
 
-- Test image can be replaced with actual Where's Waldo artwork later
-- Image generation utilities can be reused for other test scenarios
-- Backend endpoints for timer/scoring already implemented in Phase 5
+- Consider adding session-based game tracking
+- May want to limit leaderboard to top 10 or add pagination
+- Could add filters (daily/weekly/all-time leaderboards)
+- Test image can be replaced with actual Where's Waldo artwork
