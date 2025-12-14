@@ -1,35 +1,73 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from 'react';
+import GameBoard from './components/GameBoard';
+import './App.css';
+
+const API_URL = 'http://localhost:8000';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [gameData, setGameData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Fetch game image and character data
+    fetch(`${API_URL}/game-image`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to load game data');
+        return res.json();
+      })
+      .then((data) => {
+        setGameData(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
+
+  const handleCharacterSelect = ({ characterId, x, y }) => {
+    console.log('Character selected:', { characterId, x, y });
+    // Will implement validation in Phase 5
+  };
+
+  if (loading) {
+    return (
+      <main className="container">
+        <h1>Where's Waldo</h1>
+        <p>Loading game...</p>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="container">
+        <h1>Where's Waldo</h1>
+        <p style={{ color: 'var(--pico-del-color, red)' }}>Error: {error}</p>
+        <p>Make sure the backend server is running on port 8000</p>
+      </main>
+    );
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <main className="container">
+      <h1>Where's Waldo</h1>
+      <p>Find all the characters by clicking on them!</p>
+
+      <div style={{ marginBottom: '1rem' }}>
+        <strong>Characters to find:</strong>{' '}
+        {gameData?.characters.map((char) => char.name).join(', ')}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+
+      <GameBoard
+        imageUrl={gameData.image_url}
+        imageWidth={gameData.width}
+        imageHeight={gameData.height}
+        onCharacterSelect={handleCharacterSelect}
+      />
+    </main>
+  );
 }
 
-export default App
+export default App;

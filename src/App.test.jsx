@@ -1,23 +1,55 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import App from './App';
 
+// Mock fetch
+global.fetch = vi.fn();
+
 describe('App component', () => {
-  it('renders the heading', () => {
-    render(<App />);
-    expect(screen.getByRole('heading', { name: /vite \+ react/i })).toBeInTheDocument();
+  beforeEach(() => {
+    fetch.mockClear();
   });
 
-  it('increments count when button is clicked', async () => {
-    const user = userEvent.setup();
+  it('shows loading state initially', () => {
+    fetch.mockImplementation(() => new Promise(() => {})); // Never resolves
+    render(<App />);
+    expect(screen.getByText(/loading game/i)).toBeInTheDocument();
+  });
+
+  it('shows error when API call fails', async () => {
+    fetch.mockRejectedValueOnce(new Error('API Error'));
+
     render(<App />);
 
-    const button = screen.getByRole('button', { name: /count is 0/i });
-    expect(button).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/error/i)).toBeInTheDocument();
+    });
+  });
 
-    await user.click(button);
+  it('renders game when data loads successfully', async () => {
+    const mockGameData = {
+      id: 1,
+      name: 'Test Game',
+      image_url: 'https://example.com/test.jpg',
+      width: 1920,
+      height: 1280,
+      characters: [
+        { id: 1, name: 'Waldo' },
+        { id: 2, name: 'Wizard' },
+      ],
+    };
 
-    expect(screen.getByRole('button', { name: /count is 1/i })).toBeInTheDocument();
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockGameData,
+    });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /where's waldo/i })).toBeInTheDocument();
+      expect(screen.getByText(/find all the characters/i)).toBeInTheDocument();
+      expect(screen.getByText(/waldo, wizard/i)).toBeInTheDocument();
+    });
   });
 });
