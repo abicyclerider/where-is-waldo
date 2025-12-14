@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import GameBoard from './components/GameBoard';
+import HighScoreForm from './components/HighScoreForm';
+import Leaderboard from './components/Leaderboard';
 import './App.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -22,6 +24,8 @@ function App() {
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [finalTime, setFinalTime] = useState(null);
+  const [showHighScoreForm, setShowHighScoreForm] = useState(false);
+  const [leaderboardRefresh, setLeaderboardRefresh] = useState(0);
 
   useEffect(() => {
     // Fetch game image and character data
@@ -49,6 +53,7 @@ function App() {
         const endTime = Date.now();
         const timeInSeconds = (endTime - startTime) / 1000;
         setFinalTime(timeInSeconds);
+        setShowHighScoreForm(true);
       }
     }
   }, [foundCharacters, gameData, startTime]);
@@ -127,6 +132,35 @@ function App() {
     }
   };
 
+  const handleSubmitScore = async (playerName) => {
+    try {
+      const response = await fetch(`${API_URL}/high-scores`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          player_name: playerName,
+          time: finalTime,
+          image_id: gameData.id,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to submit score');
+
+      // Refresh leaderboard
+      setLeaderboardRefresh(prev => prev + 1);
+      setShowHighScoreForm(false);
+    } catch (err) {
+      console.error('Error submitting score:', err);
+      alert('Failed to submit score. Please try again.');
+    }
+  };
+
+  const handleSkipScore = () => {
+    setShowHighScoreForm(false);
+  };
+
   const handleNewGame = () => {
     setFoundCharacters([]);
     setCharacterMarkers([]);
@@ -135,6 +169,7 @@ function App() {
     setStartTime(null);
     setElapsedTime(0);
     setFinalTime(null);
+    setShowHighScoreForm(false);
   };
 
   if (loading) {
@@ -160,8 +195,14 @@ function App() {
     <main className="container">
       <h1>Where's Waldo</h1>
 
-      {/* Game completion screen */}
-      {gameComplete ? (
+      {/* High Score Form or Game completion screen */}
+      {gameComplete && showHighScoreForm && finalTime ? (
+        <HighScoreForm
+          time={finalTime}
+          onSubmit={handleSubmitScore}
+          onSkip={handleSkipScore}
+        />
+      ) : gameComplete ? (
         <div
           style={{
             textAlign: 'center',
@@ -172,9 +213,14 @@ function App() {
           }}
         >
           <h2 style={{ color: '#155724', marginBottom: '1rem' }}>🎉 Congratulations! 🎉</h2>
-          <p style={{ fontSize: '1.2rem', marginBottom: '1.5rem' }}>
+          <p style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>
             You found all {gameData.characters.length} characters!
           </p>
+          {finalTime && (
+            <p style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', color: '#155724' }}>
+              Time: {formatTime(finalTime)}
+            </p>
+          )}
           <button onClick={handleNewGame} style={{ fontSize: '1.1rem', padding: '0.75rem 1.5rem' }}>
             Play Again
           </button>
@@ -204,7 +250,14 @@ function App() {
 
       {/* Game progress tracker */}
       <div style={{ marginBottom: '1rem' }}>
-        <strong>Progress: {foundCharacters.length} / {gameData?.characters.length}</strong>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+          <strong>Progress: {foundCharacters.length} / {gameData?.characters.length}</strong>
+          {startTime && !gameComplete && (
+            <strong style={{ color: 'var(--pico-primary, #0066cc)' }}>
+              Time: {formatTime(elapsedTime)}
+            </strong>
+          )}
+        </div>
         <div style={{ marginTop: '0.5rem' }}>
           <strong>Characters to find:</strong>{' '}
           {gameData?.characters.map((char) => {
@@ -234,6 +287,9 @@ function App() {
         characterMarkers={characterMarkers}
         onCharacterSelect={handleCharacterSelect}
       />
+
+      {/* Leaderboard */}
+      <Leaderboard apiUrl={API_URL} refresh={leaderboardRefresh} />
     </main>
   );
 }
