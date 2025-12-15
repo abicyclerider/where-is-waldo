@@ -8,6 +8,7 @@ A full-stack Where's Waldo photo tagging game built with React and FastAPI, foll
 - React 18 with Vite
 - PicoCSS for styling
 - PropTypes for type checking
+- Vitest + React Testing Library for testing
 
 **Backend:**
 - FastAPI (Python)
@@ -20,9 +21,14 @@ A full-stack Where's Waldo photo tagging game built with React and FastAPI, foll
 - Character validation system
 - Visual markers for found characters
 - Game progress tracking
-- Timer and scoring system
-- High score leaderboard
-- Responsive design
+- Timer and scoring system (tracks time to completion)
+- High score leaderboard with top player rankings
+- Fully responsive design (mobile, tablet, desktop)
+- Smooth animations and loading states
+- Interactive instructions modal
+- Full keyboard navigation support
+- ARIA labels for screen readers
+- Comprehensive test suite (70 tests, 100% passing)
 
 ## Environment Variables
 
@@ -81,6 +87,9 @@ npm install
 # Start development server
 npm run dev
 
+# Run tests
+npm test
+
 # Build for production
 npm run build
 ```
@@ -128,9 +137,55 @@ where-is-waldo/
 - `GET /high-scores` - Get leaderboard
 - `POST /high-scores` - Submit high score
 
-## Development
+## Development Phases
 
-This project follows The Odin Project curriculum. See [CLAUDE.md](CLAUDE.md) for detailed phase-by-phase development notes.
+This project was built following The Odin Project curriculum in 9 phases:
+
+1. **Phase 1**: Project Setup & Architecture
+2. **Phase 2**: Frontend UI Components
+3. **Phase 3**: Database Schema & Backend API
+4. **Phase 4**: Image Click Detection & Coordinate Normalization
+5. **Phase 5**: Backend Integration & Validation
+6. **Phase 6**: Game State Management
+7. **Phase 7**: Timer & Scoring System
+8. **Phase 8**: Polish & UX Improvements
+9. **Phase 9**: Testing & Quality Assurance
+
+See [claude.md](claude.md) for detailed phase-by-phase development notes and technical decisions.
+
+## Testing
+
+The project includes a comprehensive test suite with 70 tests covering:
+
+- Component rendering and behavior
+- User interactions (clicks, typing, form submissions)
+- API integration and error handling
+- Accessibility features (ARIA labels, keyboard navigation)
+- Loading and error states
+
+Run tests with:
+```bash
+npm test
+```
+
+## Screenshots
+
+The game includes:
+- A test image with three findable characters (Waldo, Wizard, Odlaw)
+- Visual feedback when characters are found
+- Real-time timer display
+- Leaderboard with medal emojis for top 3 players
+- Responsive design that works on all devices
+
+## Future Enhancements
+
+Potential improvements for the future:
+- Replace test image with actual Where's Waldo artwork
+- Add multiple game levels/images
+- Implement daily/weekly/all-time leaderboards
+- Add sound effects for found characters
+- Add confetti animation on game completion
+- E2E tests with Playwright or Cypress
 
 ## License
 
