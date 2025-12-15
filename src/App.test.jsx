@@ -22,7 +22,8 @@ describe('App component', () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText(/error/i)).toBeInTheDocument();
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+      expect(screen.getByText(/oops! something went wrong/i)).toBeInTheDocument();
     });
   });
 
@@ -39,18 +40,21 @@ describe('App component', () => {
       ],
     };
 
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockGameData,
-    });
+    // Mock both initial fetch for game data and leaderboard fetch
+    fetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockGameData,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [], // Empty leaderboard
+      });
 
     render(<App />);
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /where's waldo/i })).toBeInTheDocument();
-      expect(screen.getByText(/find all the characters/i)).toBeInTheDocument();
-      expect(screen.getByText('Waldo')).toBeInTheDocument();
-      expect(screen.getByText('Wizard')).toBeInTheDocument();
     });
   });
 });

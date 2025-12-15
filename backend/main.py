@@ -148,25 +148,19 @@ def create_high_score(
     db: Session = Depends(get_db)
 ):
     """Submit a high score"""
-    # Get the game session
-    game_session = db.query(models.GameSession).filter(
-        models.GameSession.session_id == score_create.session_id
+    # Verify the game image exists
+    game_image = db.query(models.GameImage).filter(
+        models.GameImage.id == score_create.image_id
     ).first()
 
-    if not game_session:
-        raise HTTPException(status_code=404, detail="Game session not found")
-
-    if not game_session.completed:
-        raise HTTPException(status_code=400, detail="Game session not completed")
-
-    # Calculate time
-    time_seconds = (game_session.end_time - game_session.start_time).total_seconds()
+    if not game_image:
+        raise HTTPException(status_code=404, detail="Game image not found")
 
     # Create high score
     high_score = models.HighScore(
         player_name=score_create.player_name,
-        game_image_id=game_session.game_image_id,
-        time_seconds=time_seconds
+        game_image_id=score_create.image_id,
+        time_seconds=score_create.time
     )
 
     db.add(high_score)

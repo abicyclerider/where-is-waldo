@@ -56,8 +56,9 @@ class GameSessionEndResponse(BaseModel):
 
 # High score schemas
 class HighScoreCreate(BaseModel):
-    session_id: str
     player_name: str
+    time: float
+    image_id: int
 
 class HighScoreResponse(BaseModel):
     id: int

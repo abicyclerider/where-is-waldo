@@ -15,7 +15,7 @@ import PropTypes from 'prop-types';
 function TargetingBox({ x, y, characters = [], foundCharacters = [], onClose, onCharacterSelect }) {
   const boxRef = useRef(null);
 
-  // Close targeting box when clicking outside
+  // Close targeting box when clicking outside or pressing Escape
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (boxRef.current && !boxRef.current.contains(event.target)) {
@@ -23,8 +23,18 @@ function TargetingBox({ x, y, characters = [], foundCharacters = [], onClose, on
       }
     };
 
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [onClose]);
 
   const boxSize = 60;
@@ -50,6 +60,7 @@ function TargetingBox({ x, y, characters = [], foundCharacters = [], onClose, on
           borderRadius: '50%',
           position: 'relative',
           backgroundColor: 'rgba(0, 102, 204, 0.1)',
+          boxShadow: '0 0 0 3px rgba(0, 102, 204, 0.2), 0 0 10px rgba(0, 102, 204, 0.3)',
         }}
       >
         {/* Crosshair */}
@@ -79,6 +90,8 @@ function TargetingBox({ x, y, characters = [], foundCharacters = [], onClose, on
 
       {/* Character selection menu - positioned to the right of targeting box */}
       <div
+        role="menu"
+        aria-label="Character selection menu"
         style={{
           position: 'absolute',
           left: menuOffset,
@@ -91,10 +104,11 @@ function TargetingBox({ x, y, characters = [], foundCharacters = [], onClose, on
           boxShadow: 'var(--pico-card-box-shadow, 0 0 10px rgba(0,0,0,0.2))',
           pointerEvents: 'auto', // Re-enable pointer events for the menu
           zIndex: 1000,
+          animation: 'fadeIn 0.2s ease-in-out',
         }}
         data-testid="character-menu"
       >
-        <div style={{ fontSize: '0.875rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+        <div style={{ fontSize: '0.875rem', fontWeight: 'bold', marginBottom: '0.5rem' }} id="character-menu-label">
           Who is this?
         </div>
         <div className="character-options" data-testid="character-options">
@@ -105,6 +119,9 @@ function TargetingBox({ x, y, characters = [], foundCharacters = [], onClose, on
                 key={character.id}
                 onClick={() => onCharacterSelect(character.id)}
                 disabled={isFound}
+                role="menuitem"
+                aria-label={`Select ${character.name}${isFound ? ' (already found)' : ''}`}
+                autoFocus={index === 0 && !isFound}
                 style={{
                   display: 'block',
                   width: '100%',

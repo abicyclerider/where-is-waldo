@@ -16,6 +16,7 @@ import TargetingBox from './TargetingBox';
  */
 function GameBoard({ imageUrl, imageWidth, imageHeight, characters, foundCharacters, characterMarkers = [], onCharacterSelect }) {
   const [targetingBox, setTargetingBox] = useState(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const imageRef = useRef(null);
 
   /**
@@ -67,16 +68,38 @@ function GameBoard({ imageUrl, imageWidth, imageHeight, characters, foundCharact
 
   return (
     <div className="game-board" style={{ position: 'relative', display: 'inline-block' }}>
+      {!imageLoaded && (
+        <div
+          style={{
+            padding: '4rem',
+            textAlign: 'center',
+            backgroundColor: 'var(--pico-card-background-color, white)',
+            borderRadius: 'var(--pico-border-radius, 0.5rem)',
+            border: '1px solid var(--pico-muted-border-color, #ccc)',
+          }}
+        >
+          <p>Loading image...</p>
+        </div>
+      )}
       <img
         ref={imageRef}
         src={imageUrl}
-        alt="Where's Waldo game scene"
+        alt="Where's Waldo game scene - Click to find characters"
         onClick={handleImageClick}
+        onLoad={() => setImageLoaded(true)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleImageClick(e);
+          }
+        }}
         style={{
           maxWidth: '100%',
           height: 'auto',
           cursor: 'crosshair',
-          display: 'block',
+          display: imageLoaded ? 'block' : 'none',
         }}
         data-testid="game-image"
       />
@@ -93,6 +116,9 @@ function GameBoard({ imageUrl, imageWidth, imageHeight, characters, foundCharact
         return (
           <div
             key={marker.id}
+            className="character-marker"
+            role="img"
+            aria-label={`${marker.name} found`}
             style={{
               position: 'absolute',
               left: pixelX - 20,
@@ -101,12 +127,16 @@ function GameBoard({ imageUrl, imageWidth, imageHeight, characters, foundCharact
               height: 40,
               border: '3px solid #28a745',
               borderRadius: '50%',
-              backgroundColor: 'rgba(40, 167, 69, 0.2)',
+              backgroundColor: 'rgba(40, 167, 69, 0.3)',
               pointerEvents: 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '1.5rem',
+              animation: 'pulse 0.5s ease-in-out',
+              boxShadow: '0 0 0 3px rgba(40, 167, 69, 0.2), 0 2px 8px rgba(0, 0, 0, 0.2)',
+              color: '#28a745',
+              fontWeight: 'bold',
             }}
             data-testid={`marker-${marker.id}`}
           >

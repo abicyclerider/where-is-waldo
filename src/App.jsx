@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import GameBoard from './components/GameBoard';
 import HighScoreForm from './components/HighScoreForm';
 import Leaderboard from './components/Leaderboard';
+import Instructions from './components/Instructions';
 import './App.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -26,6 +27,7 @@ function App() {
   const [finalTime, setFinalTime] = useState(null);
   const [showHighScoreForm, setShowHighScoreForm] = useState(false);
   const [leaderboardRefresh, setLeaderboardRefresh] = useState(0);
+  const [showInstructions, setShowInstructions] = useState(true);
 
   useEffect(() => {
     // Fetch game image and character data
@@ -175,8 +177,29 @@ function App() {
   if (loading) {
     return (
       <main className="container">
-        <h1>Where's Waldo</h1>
-        <p>Loading game...</p>
+        <h1>Where&apos;s Waldo</h1>
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '3rem',
+            animation: 'fadeIn 0.3s ease-in-out',
+          }}
+        >
+          <div
+            style={{
+              display: 'inline-block',
+              width: '50px',
+              height: '50px',
+              border: '5px solid var(--pico-muted-border-color, #e0e0e0)',
+              borderTop: '5px solid var(--pico-primary, #0066cc)',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+            }}
+            role="status"
+            aria-label="Loading"
+          />
+          <p style={{ marginTop: '1rem', fontSize: '1.1rem' }}>Loading game...</p>
+        </div>
       </main>
     );
   }
@@ -184,24 +207,59 @@ function App() {
   if (error) {
     return (
       <main className="container">
-        <h1>Where's Waldo</h1>
-        <p style={{ color: 'var(--pico-del-color, red)' }}>Error: {error}</p>
-        <p>Make sure the backend server is running on port 8000</p>
+        <h1>Where&apos;s Waldo</h1>
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '2rem',
+            backgroundColor: 'var(--pico-del-color, #f8d7da)',
+            color: '#721c24',
+            borderRadius: 'var(--pico-border-radius, 0.5rem)',
+            border: '1px solid #f5c6cb',
+            animation: 'fadeIn 0.3s ease-in-out',
+          }}
+          role="alert"
+        >
+          <h2 style={{ marginBottom: '1rem' }}>Oops! Something went wrong</h2>
+          <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>
+            <strong>Error:</strong> {error}
+          </p>
+          <p style={{ marginBottom: '1.5rem' }}>
+            Please make sure the backend server is running on port 8000.
+          </p>
+          <button onClick={() => window.location.reload()} style={{ fontSize: '1rem' }}>
+            Retry
+          </button>
+        </div>
       </main>
     );
   }
 
   return (
     <main className="container">
-      <h1>Where's Waldo</h1>
+      {showInstructions && <Instructions onClose={() => setShowInstructions(false)} />}
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h1 style={{ margin: 0 }}>Where&apos;s Waldo</h1>
+        <button
+          onClick={() => setShowInstructions(true)}
+          className="secondary"
+          style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}
+          aria-label="Show instructions"
+        >
+          How to Play
+        </button>
+      </div>
 
       {/* High Score Form or Game completion screen */}
       {gameComplete && showHighScoreForm && finalTime ? (
-        <HighScoreForm
-          time={finalTime}
-          onSubmit={handleSubmitScore}
-          onSkip={handleSkipScore}
-        />
+        <div style={{ animation: 'slideIn 0.4s ease-out' }}>
+          <HighScoreForm
+            time={finalTime}
+            onSubmit={handleSubmitScore}
+            onSkip={handleSkipScore}
+          />
+        </div>
       ) : gameComplete ? (
         <div
           style={{
@@ -210,6 +268,7 @@ function App() {
             backgroundColor: 'var(--pico-ins-color, #d4edda)',
             borderRadius: 'var(--pico-border-radius, 0.5rem)',
             marginBottom: '1rem',
+            animation: 'slideIn 0.4s ease-out',
           }}
         >
           <h2 style={{ color: '#155724', marginBottom: '1rem' }}>🎉 Congratulations! 🎉</h2>
@@ -242,6 +301,7 @@ function App() {
               : 'var(--pico-del-color, #f8d7da)',
             color: feedback.valid ? '#155724' : '#721c24',
             fontWeight: 'bold',
+            animation: 'fadeIn 0.3s ease-in-out',
           }}
         >
           {feedback.message}
@@ -250,7 +310,7 @@ function App() {
 
       {/* Game progress tracker */}
       <div style={{ marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+        <div className="progress-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
           <strong>Progress: {foundCharacters.length} / {gameData?.characters.length}</strong>
           {startTime && !gameComplete && (
             <strong style={{ color: 'var(--pico-primary, #0066cc)' }}>
